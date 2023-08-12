@@ -36,12 +36,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
             print(f"No action necessary. (Current cost: {cost_amount})")
             return
     else:
-        content = """
-        Budget name '{}'<br>
-        Current cost is <b>${}</b>.<br>
-        Budget cost is <b>${}</b>.<br>
-        💸 💸 💸 💸
-        """.format(
+        content = """Budget name '{}'.Current cost is ${}.Budget cost is ${}💸 💸 💸 💸""".format(
             budget_display_name, cost_amount, budget_amount
         )
         title = "💸 Cost reaches {:.0f}% from {}".format(
