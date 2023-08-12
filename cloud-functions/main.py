@@ -4,7 +4,6 @@ import os
 from datetime import datetime
 
 import functions_framework
-import google.api_core.exceptions
 import pendulum
 import requests
 from cloudevents.http import CloudEvent
@@ -15,6 +14,7 @@ webhook_url = os.environ.get(
 )
 red_code = "DC4731"
 green_code = "50C878"
+
 
 # Triggered from a message on a Cloud Pub/Sub topic.
 @functions_framework.cloud_event
@@ -30,7 +30,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
     budget_display_name = pubsub_json["budgetDisplayName"]
     alertThresholdExceeded = pubsub_json.get("alertThresholdExceeded", None)
     project_id = get_alert_name(pubsub_json["budgetDisplayName"])
-    
+
     if alertThresholdExceeded is None:
         if cost_amount <= budget_amount:
             print(f"No action necessary. (Current cost: {cost_amount})")
@@ -54,17 +54,15 @@ def subscribe(cloud_event: CloudEvent) -> None:
         print(f"############################################")
 
         should_notify = check_to_notify_per_month(project_id)
-
         if should_notify:
-	        if alertThresholdExceeded == 0.75:
+            if alertThresholdExceeded == 0.75:
                 send_teams(
                     webhook_url,
                     content=content,
                     title=title,
                     color=red_code,
                 )
-
-	        elif alertThresholdExceeded == 1.0:
+            elif alertThresholdExceeded == 1.0:
                 ### do something differently from 75% ###
                 send_teams(
                     webhook_url,
@@ -97,7 +95,7 @@ def send_teams(
         },
     )
     return response.status_code  # Should be 200
-        
+
 
 def check_to_notify_per_month(project_id: str) -> bool:
     """_summary_
@@ -110,7 +108,9 @@ def check_to_notify_per_month(project_id: str) -> bool:
         bool: True when already notify and update data in Firestore, False to skip notify
     """
     db = firestore.Client()
-    last_notify_ref = db.collection("budget-alert-notification-stats").document(project_id)
+    last_notify_ref = db.collection("budget-alert-notification-stats").document(
+        project_id
+    )
     current_timestamp = pendulum.now("Asia/Bangkok")
 
     try:
