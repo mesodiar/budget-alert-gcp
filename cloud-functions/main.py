@@ -8,7 +8,7 @@ import google.api_core.exceptions
 import pendulum
 import requests
 from cloudevents.http import CloudEvent
-from google.cloud import bigquery, firestore
+from google.cloud import firestore
 
 webhook_url = os.environ.get(
     "WEBHOOK_URL", "Specified environment variable is not set."
@@ -44,7 +44,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
             budget_display_name, cost_amount, budget_amount
         )
         title = "💸 Cost reaches {:.0f}% from {}".format(
-        alertThresholdExceeded * 100, budget_display_name
+            alertThresholdExceeded * 100, budget_display_name
         )
         print(f"############################################")
         print(f"budget threshold is {alertThresholdExceeded}")

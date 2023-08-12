@@ -1,5 +1,4 @@
 functions-framework==3.3.0
-google-cloud-bigquery==3.11.4
 google-api-core==2.11.1
 google-cloud-firestore==2.11.1
 pendulum==2.1.2
