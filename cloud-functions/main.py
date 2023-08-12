@@ -29,6 +29,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
     budget_amount = pubsub_json["budgetAmount"]
     budget_display_name = pubsub_json["budgetDisplayName"]
     alertThresholdExceeded = pubsub_json.get("alertThresholdExceeded", None)
+    project_id = get_alert_name(pubsub_json["budgetDisplayName"])
     
     if alertThresholdExceeded is None:
         if cost_amount <= budget_amount:
@@ -52,7 +53,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
         print(f"{content}")
         print(f"############################################")
 
-        should_notify = check_to_notify_per_month(project_to_assign)
+        should_notify = check_to_notify_per_month(project_id)
 
         if should_notify:
 	        if alertThresholdExceeded == 0.75:
