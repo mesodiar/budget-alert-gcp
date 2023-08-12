@@ -37,10 +37,10 @@ def subscribe(cloud_event: CloudEvent) -> None:
             return
     else:
         content = """
-            Budget name '{}'<br>
-            Current cost is <b>${}</b>.<br>
-            Budget cost is <b>${}</b>.<br>
-            💸 💸 💸 💸
+        Budget name '{}'<br>
+        Current cost is <b>${}</b>.<br>
+        Budget cost is <b>${}</b>.<br>
+        💸 💸 💸 💸
         """.format(
             budget_display_name, cost_amount, budget_amount
         )
@@ -60,7 +60,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
                     webhook_url,
                     content=content,
                     title=title,
-                    color=red_code,
+                    color=green_code,
                 )
             elif alertThresholdExceeded == 1.0:
                 ### do something differently from 75% ###
