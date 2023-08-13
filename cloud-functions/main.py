@@ -48,25 +48,28 @@ def subscribe(cloud_event: CloudEvent) -> None:
         print(f"{content}")
         print(f"############################################")
 
-        should_notify = check_to_notify_per_month(project_id)
-        if should_notify:
-            if alertThresholdExceeded == 0.75:
+       
+        if alertThresholdExceeded == 0.75:
+            alert_percent = int(alertThresholdExceeded*100)
+            should_notify = check_to_notify_per_month(project_id, alert_percent)
+            if should_notify:
                 send_teams(
                     webhook_url,
                     content=content,
                     title=title,
                     color=green_code,
                 )
-            elif alertThresholdExceeded == 1.0:
-                ### do something differently from 75% ###
+        elif alertThresholdExceeded == 1.0:
+            ### do something differently from 75% ###
+            alert_percent = int(alertThresholdExceeded*100)
+            should_notify = check_to_notify_per_month(project_id, alert_percent)
+            if should_notify:
                 send_teams(
                     webhook_url,
                     content=content,
                     title=title,
                     color=red_code,
                 )
-        else:
-            return
 
 
 def send_teams(
@@ -92,7 +95,7 @@ def send_teams(
     return response.status_code  # Should be 200
 
 
-def check_to_notify_per_month(project_id: str) -> bool:
+def check_to_notify_per_month(project_id: str, threshold_percent) -> bool:
     """_summary_
         check if already notify in Teams in that month or not
         by checking from Cloud Firestore
@@ -112,13 +115,13 @@ def check_to_notify_per_month(project_id: str) -> bool:
         last_notify_snapshot = last_notify_ref.get()
         if not last_notify_snapshot.exists:
             # Initialize with the current timestamp if it's the first time.
-            last_notify_ref.set({"last_noti": current_timestamp})
+            last_notify_ref.set({f"last_noti_{threshold_percent}": current_timestamp})
             print("Never has notification before, should notify team")
 
             return True
         else:
             last_notify_in_bkk = convert_to_timestamp_with_bkk(
-                last_notify_snapshot.get("last_noti")
+                last_notify_snapshot.get(f"last_noti_{threshold_percent}")
             )
 
             print("last_notify_in_bkk: ", last_notify_in_bkk)
@@ -128,7 +131,7 @@ def check_to_notify_per_month(project_id: str) -> bool:
                 # Proceed with sending the notify to Microsoft Teams.
 
                 # Update the last notify timestamp.
-                last_notify_ref.update({"last_noti": current_timestamp})
+                last_notify_ref.update({f"last_noti_{threshold_percent}": current_timestamp})
                 return True
             else:
                 print("Skipping notify, All ready notify in this month.")
