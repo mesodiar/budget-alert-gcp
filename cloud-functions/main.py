@@ -49,28 +49,23 @@ def subscribe(cloud_event: CloudEvent) -> None:
         print(f"{title}")
         print(f"{content}")
         print(f"############################################")
-
-        if alertThresholdExceeded == 0.75:
-            alert_percent = int(alertThresholdExceeded * 100)
-            should_notify = check_to_notify_per_month(project_id, alert_percent)
-            if should_notify:
-                send_teams(
-                    webhook_url,
-                    content=content,
-                    title=title,
-                    color=green_code,
-                )
-        elif alertThresholdExceeded == 1.0:
+        alert_percent = int(alertThresholdExceeded * 100)
+        should_notify = check_to_notify_per_month(project_id, alert_percent)
+        if alertThresholdExceeded == 0.75 and should_notify:
+            send_teams(
+                webhook_url,
+                content=content,
+                title=title,
+                color=green_code,
+            )
+        elif alertThresholdExceeded == 1.0 and should_notify:
             ### do something differently from 75% ###
-            alert_percent = int(alertThresholdExceeded * 100)
-            should_notify = check_to_notify_per_month(project_id, alert_percent)
-            if should_notify:
-                send_teams(
-                    webhook_url,
-                    content=content,
-                    title=title,
-                    color=red_code,
-                )
+            send_teams(
+                webhook_url,
+                content=content,
+                title=title,
+                color=red_code,
+            )
 
 
 def send_teams(
