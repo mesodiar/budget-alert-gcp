@@ -36,8 +36,10 @@ def subscribe(cloud_event: CloudEvent) -> None:
             print(f"No action necessary. (Current cost: {cost_amount})")
             return
     else:
-        content = """Budget name '{}'.Current cost is ${}.Budget cost is ${}💸 💸 💸 💸""".format(
-            budget_display_name, cost_amount, budget_amount
+        content = (
+            """Budget name '{}'.Current cost is ${}.Budget cost is ${}💸 💸 💸 💸""".format(
+                budget_display_name, cost_amount, budget_amount
+            )
         )
         title = "💸 Cost reaches {:.0f}% from {}".format(
             alertThresholdExceeded * 100, budget_display_name
@@ -48,9 +50,8 @@ def subscribe(cloud_event: CloudEvent) -> None:
         print(f"{content}")
         print(f"############################################")
 
-       
         if alertThresholdExceeded == 0.75:
-            alert_percent = int(alertThresholdExceeded*100)
+            alert_percent = int(alertThresholdExceeded * 100)
             should_notify = check_to_notify_per_month(project_id, alert_percent)
             if should_notify:
                 send_teams(
@@ -61,7 +62,7 @@ def subscribe(cloud_event: CloudEvent) -> None:
                 )
         elif alertThresholdExceeded == 1.0:
             ### do something differently from 75% ###
-            alert_percent = int(alertThresholdExceeded*100)
+            alert_percent = int(alertThresholdExceeded * 100)
             should_notify = check_to_notify_per_month(project_id, alert_percent)
             if should_notify:
                 send_teams(
@@ -113,13 +114,26 @@ def check_to_notify_per_month(project_id: str, threshold_percent) -> bool:
 
     try:
         last_notify_snapshot = last_notify_ref.get()
+        data = last_notify_snapshot.to_dict()
         if not last_notify_snapshot.exists:
             # Initialize with the current timestamp if it's the first time.
             last_notify_ref.set({f"last_noti_{threshold_percent}": current_timestamp})
             print("Never has notification before, should notify team")
 
             return True
+
+        elif f"last_noti_{threshold_percent}" not in data:
+            # Update existing doc with new threshold
+            last_notify_ref.update(
+                {f"last_noti_{threshold_percent}": current_timestamp}
+            )
+            print(
+                f"Never has notification for {threshold_percent} before, should notify team"
+            )
+
+            return True
         else:
+            # Both threshold is in doc, check if it should notify
             last_notify_in_bkk = convert_to_timestamp_with_bkk(
                 last_notify_snapshot.get(f"last_noti_{threshold_percent}")
             )
@@ -131,7 +145,9 @@ def check_to_notify_per_month(project_id: str, threshold_percent) -> bool:
                 # Proceed with sending the notify to Microsoft Teams.
 
                 # Update the last notify timestamp.
-                last_notify_ref.update({f"last_noti_{threshold_percent}": current_timestamp})
+                last_notify_ref.update(
+                    {f"last_noti_{threshold_percent}": current_timestamp}
+                )
                 return True
             else:
                 print("Skipping notify, All ready notify in this month.")
